@@ -1,0 +1,13 @@
+appId=aijianzi_t
+&roomId=11198
+&userId=s19258
+&role=student
+&subGroupId=386
+&random=4acef9569ab245fd9838a5fe912fc7d0
+&expire=1540882258
+&appSign=A83BBD5FE656A4F7F2FA747DD304734E
+&subGroupName=%E9%BB%98%E8%AE%A4%E7%8F%AD%E7%BA%A7
+&nickname=%E5%A4%A7%E5%8F%94%E5%A4%A7%E5%A9%B6%E5%A5%A5%E6%9C%AF%E5%A4%A7%E5%B8%88%E5%A4%A7
+&courseId=573
+&knowledgeId=3235
+&replay=true
