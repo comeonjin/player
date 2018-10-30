@@ -13,7 +13,7 @@
                     {{messageDataSource.date}}
                 </div>
             </div>
-            <div class="bottom" >
+            <div class="bottom" :style="{textAlign: messageDataSource.direction}">
                 {{messageDataSource.message}}
             </div>
         </div>
@@ -77,7 +77,7 @@ export default {
         .message-content{
             float: left;
             margin-left: 18px;
-            width: 312px;
+            width: 612px;
             border-radius: 5px;
             background: blanchedalmond;
             border: 1px solid #eee;
@@ -93,7 +93,7 @@ export default {
             .top{
                 font-size: @font-size;
                 line-height: 10px;
-                padding: 8px 10px 1px;
+                padding: 8px 25px 1px;
                 overflow: hidden;
                 font-family: 'Courier New', Courier, monospace;
                 .student-name{
@@ -103,8 +103,8 @@ export default {
             }
             .bottom{
                 min-height: 30px;
-                text-align: left;
-                width: 312px;
+                margin: 0 auto;
+                width: 580px;
                 box-sizing: border-box;
                 padding: 3px 10px;
                 font-size: 10px;

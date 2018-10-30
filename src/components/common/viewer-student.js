@@ -1360,7 +1360,8 @@ LMC.init({
 			},
 			'onGetPoint': function(msg) {
 				showPointRedPacket(msg);
-			},
+            },
+            //心跳  轮询课程状态
 			'onPollingTrigger': function(status) {
 				systemTime = status.serverTime;
 				var liveStatus = status.liveStatus;

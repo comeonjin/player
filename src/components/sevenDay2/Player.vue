@@ -15,7 +15,19 @@
                 </div>
             </div>
         </div>
-        <Chat />
+        <!-- <Chat /> -->
+        <div class="chatBox">
+            <div id="chatItemsBox" class="messageScreen" @scroll="handleScroll" ref="messageScreen">
+                <Message v-for="(item, index) in messageList" :key="index" :messageDataSource="item" />
+            </div>
+
+            <div class="inputMessage">
+                <input id="send_msg_text" class="input" type="text" v-model="currentMessage">
+                <div id="text_msg_send_btn" class="button" @click="sendMessage">
+                    发送 
+                </div>
+            </div>
+        </div>
     </div>
     
 </template>
@@ -23,16 +35,45 @@
 <script>
     import LMC from '../common/lmc.js' 
     import Chat from './Chat.vue'
+    import Message from './Message.vue'
 
     export default {
         data(){
             return {
-                playerUrl: 'http://10.31.4.133:8080/#/?appId=aijianzi_t&roomId=11198&userId=s19258&role=student&subGroupId=386&random=4acef9569ab245fd9838a5fe912fc7d0&expire=1540882258&appSign=A83BBD5FE656A4F7F2FA747DD304734E&subGroupName=%E9%BB%98%E8%AE%A4%E7%8F%AD%E7%BA%A7&nickname=%E5%A4%A7%E5%8F%94%E5%A4%A7%E5%A9%B6%E5%A5%A5%E6%9C%AF%E5%A4%A7%E5%B8%88%E5%A4%A7&courseId=573&knowledgeId=3235&replay=true'
+                // playerUrl: 'http://10.31.4.133:8080/#/?appId=aijianzi_t&roomId=11198&userId=s19258&role=student&subGroupId=386&random=4acef9569ab245fd9838a5fe912fc7d0&expire=1540882258&appSign=A83BBD5FE656A4F7F2FA747DD304734E&subGroupName=%E9%BB%98%E8%AE%A4%E7%8F%AD%E7%BA%A7&nickname=%E5%A4%A7%E5%8F%94%E5%A4%A7%E5%A9%B6%E5%A5%A5%E6%9C%AF%E5%A4%A7%E5%B8%88%E5%A4%A7&courseId=573&knowledgeId=3235&replay=true'
+                messageList: [{
+                    direction: 'left',
+                    portrait: '../../../assets/portrait.jpg',
+                    name: 'GACZE',
+                    date: '10-20 21:07',
+                    message: '老师们辛苦了老师们辛苦了',
+                }, {
+                    direction: 'right',
+                    portrait: '../../../assets/portrait.jpg',
+                    name: 'GACZE',
+                    date: '10-20 21:07',
+                    message: '老师们辛苦了老师们辛苦了老师们辛苦了',
+                }, {
+                    direction: 'right',
+                    portrait: '../../../assets/portrait.jpg',
+                    name: 'GACZE',
+                    date: '10-20 21:07',
+                    message: '老师们辛苦了老师们辛苦了老师们辛苦了老师们辛苦了',
+                }, {
+                    direction: 'left',
+                    portrait: '../../../assets/portrait.jpg',
+                    name: 'GACZE',
+                    date: '10-20 21:07',
+                    message: '老师们辛苦了老师们辛苦了老师们辛苦了老师们辛苦了老师们辛苦了',
+                }],
+                currentMessage: '',
+                initParams: {}
             }
         },
         computed:{},
         components:{
-            Chat
+            Chat,
+            Message
         },
         created(){
             
@@ -77,9 +118,11 @@
                 decodeURI(window.location.href).split('?')[1].split('&').map((item) => {
                     initParams[item.split('=')[0]] = item.split('=')[1]
                 })
+                this.initParams = initParams
                 return initParams
             },
             initPlayer(params){
+                const context = this
                 LMC.init({
                     appConfig: {
                         // 应用配置
@@ -118,66 +161,71 @@
                             onInitCompleted: function(self) {
                                 console.log(self)
                             },
+                            onTextMsgSend: function(msg) { //当发送普通消息时回调
+                                alert(JSON.stringify(msg))
+                                LMC.debugLog('onTextMsgSend');
+                                LMC.debugLog(msg);
+                            },
                         },
                         im: { //即时通信模块
                             'onlyGroupMsg': true, //是否只显示本组消息
-                            'emojiBtn': 'emojiBtn1', // 弹出emoji包的按钮
-                            'voiceBtn': 'voiceBtn', // 弹出语音功能的按钮
+                            // 'emojiBtn': 'emojiBtn1', // 弹出emoji包的按钮
+                            // 'voiceBtn': 'voiceBtn', // 弹出语音功能的按钮
                             'textMsgSendBtn': 'text_msg_send_btn', // 文本消息发送按钮
                             'textMsgInput': 'send_msg_text', // 文本消息发送按钮
-                            'emojis': { // emoji表情符号
-                                'append': false, //默认是true,
-                                'emojiTextTemplate' : '[${content}]',
-                                'emojiImgBox': 'emoji-img-box', //表情包图片容器
-                                'imgs': {
-                                    "微笑": "image/emojis/smile.png",
-                                    "可爱": "image/emojis/blush.png",
-                                    "呲牙": "image/emojis/grin.png",
-                                    "喜欢": "image/emojis/heart_eyes.png",
-                                    "吐舌头": "image/emojis/stuck_out_tongue_closed_eyes.png",
-                                    "调皮": "image/emojis/stuck_out_tongue_winking_eye.png",
-                                    "激动": "image/emojis/joy.png",
-                                    "不屑": "image/emojis/unamused.png",
-                                    "哼": "image/emojis/smirk.png",
-                                    "酷": "image/emojis/sunglasses.png",
-                                    "呆": "image/emojis/neutral_face.png",
-                                    "飞吻": "image/emojis/kissing_heart.png",
-                                    "生气": "image/emojis/angry.png",
-                                    "闪瞎": "image/emojis/astonished.png",
-                                    "瞪眼": "image/emojis/flushed.png",
-                                    "难受": "image/emojis/pensive.png",
-                                    "愤怒": "image/emojis/rage.png",
-                                    "纠结": "image/emojis/confounded.png",
-                                    "怒": "image/emojis/triumph.png",
-                                    "困": "image/emojis/sleeping.png",
-                                    "吃惊": "image/emojis/fearful.png",
-                                    "汗": "image/emojis/sweat.png",
-                                    "惊恐": "image/emojis/scream.png",
-                                    "大哭": "image/emojis/sob.png",
-                                    "花": "image/emojis/rose.png",
-                                    "西瓜": "image/emojis/watermelon.png",
-                                    "一百分": "image/emojis/100.png",
-                                    "厉害": "image/emojis/thumbsup.png",
-                                    "ok": "image/emojis/ok_hand.png",
-                                    "鼓掌": "image/emojis/clap.png",
-                                    "胜利": "image/emojis/v.png",
-                                    "祈祷": "image/emojis/pray.png",
-                                    "不听": "image/emojis/hear_no_evil.png",
-                                    "不说": "image/emojis/speak_no_evil.png",
-                                    "不看": "image/emojis/see_no_evil.png",
-                                    "魔性": "image/emojis/trollface.png"
-                                }
-                                // [{//表情图片数据'name' : 'DaXiao','url' : 'xxxxx.gif'} ]
-                            },
                             'chatItemsBox': 'chatItemsBox', //聊天消息区容器
                             'chatItemRender': function(msg) { //聊天内容渲染器,
                                 // showMsgItem(msg);
-                                alert(JSON.stringify(msg))
+                                // context.currentMessage = msg.content
+                                context.renderMessage(msg.content, context.formateTime(msg.time*1000), msg.fromAccount)
+                                // debugger
+                                console.log("**********************************",msg)
+                                // context.sendMessage(context.formateTime(msg.time))
+                                
                             },
                         }
                     }
                 })
-            }
+            },
+            sendMessage(date) {
+                
+                console.log(LMC.getStatus().speaking)
+                debugger
+
+                if (LMC.getStatus().speaking !== 'off') {
+                    if(this.currentMessage !== ''){
+                        LMC.sendTextMsg(this.currentMessage);
+                    }
+                }
+            },
+            renderMessage(message,date,userId){
+                const messageData = {
+                    direction: this.initParams.userId === userId ? 'right' : 'left',
+                    portrait: '../../../assets/portrait.jpg',
+                    name: 'GACZE',
+                    date: date,
+                    message: message,
+                };
+                if (message !== '') {
+                    this.currentMessage = ''
+                    this.messageList.push(messageData);
+                    this.$nextTick(() => {
+                        this.$refs.messageScreen.scrollTop = (this.$refs.messageScreen.scrollHeight - this.$refs.messageScreen.clientHeight);
+                    })
+                }
+            },
+            handleScroll() {
+                console.log(this.$refs.messageScreen.scrollTop);
+            },
+            outputHeight() {
+                console.log('元素高度', this.$refs.messageScreen.clientHeight);
+                console.log('元素内容区高度', this.$refs.messageScreen.scrollHeight);
+            },
+            formateTime(timeValue){
+                let date = new Date(timeValue*1000)
+                const timeString = `${date.getMonth()+1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}`
+                return timeString
+            },
         }
     }
 </script>
@@ -189,6 +237,41 @@
     //     height: 100%;
     //     background: #fff;
     // }
+    @font-size: 20px;
+
+    .playerContainer{
+        .chatBox{
+            .messageScreen{
+                background: orange;
+                height: 300px;
+                overflow-y: auto;
+            }
+            .inputMessage{
+                background: lightsalmon;
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                height: 60px;
+                .input{
+                    display: block;
+                    border: 0px;
+                    width: 300px;
+                    height: 48px;
+                    outline: none;
+                    padding-left: 5px;
+                }
+                .button{
+                    background: greenyellow;
+                    color: #FFF;
+                    font-size: @font-size;
+                    line-height: 50px;
+                    width: 100px;
+                    height: 50px;
+                }
+            }
+        }
+    }
 </style>
 
 
