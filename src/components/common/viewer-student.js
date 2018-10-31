@@ -1360,8 +1360,7 @@ LMC.init({
 			},
 			'onGetPoint': function(msg) {
 				showPointRedPacket(msg);
-            },
-            //心跳  轮询课程状态
+			},
 			'onPollingTrigger': function(status) {
 				systemTime = status.serverTime;
 				var liveStatus = status.liveStatus;
@@ -1602,7 +1601,9 @@ LMC.init({
 				}
 
 			},
-			'onCommandArrive': function(msg) { // 当命令消息到达时回调
+            'onCommandArrive': function(msg) { // 当命令消息到达时回调
+                alert(JSON.stringify(msg))
+
 				msg = msg || {};
 				var type = msg.type;
 				var msgData = msg.data || {};
@@ -1661,7 +1662,8 @@ LMC.init({
 					$('#music-btn').tooltip();
 				}
 			},
-			'onTextMsgSend': function(msg) { //当发送普通消息时回调
+            'onTextMsgSend': function(msg) { //当发送普通消息时回调
+                alert(JSON.stringify(msg))
 				LMC.debugLog('onTextMsgSend');
 				LMC.debugLog(msg);
 			},

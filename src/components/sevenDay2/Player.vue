@@ -17,7 +17,7 @@
         </div>
         <!-- <Chat /> -->
         <div class="chatBox">
-            <div id="chatItemsBox" class="messageScreen" @scroll="handleScroll" ref="messageScreen">
+            <div id="chatItemsBox" class="messageScreen" ref="messageScreen">
                 <Message v-for="(item, index) in messageList" :key="index" :messageDataSource="item" />
             </div>
 
@@ -67,7 +67,8 @@
                     message: '老师们辛苦了老师们辛苦了老师们辛苦了老师们辛苦了老师们辛苦了',
                 }],
                 currentMessage: '',
-                initParams: {}
+                initParams: {},
+                getVideoTimer: null
             }
         },
         computed:{},
@@ -79,38 +80,12 @@
             
             if(window.location.href.split('?')[1]){
                 this.initPlayer(this.getParams())
-                console.log(this.getParams())
             }
-            // //参数说明(后三个): 课程id 课节id userToken
-            // let url = common.baseUrl+'play/'+this.$route.params.playType+'/'+this.currentCourseId+'/'+this.currentKnowledgeId+'/'+localStorage.getItem('userToken')
-            // alert('视频播放url: __'+url)
-            // axios.get(url).then((res)=> {
-            //     alert(JSON.stringify(res.data.appendData))
-            //     if(res.data.resultType === 1){
-            //         this.initPlayer(res.data.appendData)
-            //     }else{
-            //         alert(res.data.message)
-            //     }
-            // })
-            // this.initPlayer({
-            //     "role":"student",
-            //     "headerUrl":"http%3A%2F%2Ftest27.aijianzi.com%2F%2Fupload%2Fhead%2F15739_big.jpg",
-            //     "replay":true,
-            //     "userId":"s15739",
-            //     "roomId":"4531",
-            //     "knowledgeId":2303,
-            //     "subGroupName":"",
-            //     "random":"9a6b5273e3044341a7d74482ce834f10",
-            //     "appSign":"8087AB8C230A628066DB62391D6943B3",
-            //     "appId":"aijianzi_test",
-            //     "subGroupId":"0",
-            //     "expire":1534564516,
-            //     "serverType":"LMC",
-            //     "nickname":"%E5%98%BF%E5%98%BF%E5%93%88%E5%93%88",
-            //     "courseId":149})
+            
         },
         mounted(){
-            console.log(document.getElementById('send_msg_text'))
+            //设置播放不自动全屏
+            this.setVideo()
         },
         methods: {
             getParams(){
@@ -214,18 +189,36 @@
                     })
                 }
             },
-            handleScroll() {
-                console.log(this.$refs.messageScreen.scrollTop);
-            },
-            outputHeight() {
-                console.log('元素高度', this.$refs.messageScreen.clientHeight);
-                console.log('元素内容区高度', this.$refs.messageScreen.scrollHeight);
-            },
+            
             formateTime(timeValue){
+                function add0(value){
+                    let res = value < 10 ? '0'+value : value
+                    return res 
+                }
                 let date = new Date(timeValue*1000)
-                const timeString = `${date.getMonth()+1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}`
+                let month = add0(date.getMonth()+1);
+                let day = add0(date.getDate());
+                let hours = add0(date.getHours());
+                let minutes = add0(date.getMinutes());
+
+                
+                const timeString = `${month}-${day} ${hours}:${minutes}`
                 return timeString
             },
+            //设置移动端播放器播放时不自动全屏
+            setVideo(){
+                this.getVideoTimer = setInterval(() => {
+                    if(!document.getElementsByTagName('video')[0]){
+                        return
+                    }
+                    const video = document.getElementsByTagName('video')[0]
+                    video.setAttribute('webkit-playsinline', true)
+                    video.setAttribute('playsinline', true)
+                    video.setAttribute('x5-playsinline', true)
+                    clearInterval(this.getVideoTimer)
+                    this.getVideoTimer = null
+                },1000)
+            }
         }
     }
 </script>
@@ -254,20 +247,22 @@
                 align-items: center;
                 height: 60px;
                 .input{
-                    display: block;
                     border: 0px;
+                    border-radius: 0px;
                     width: 300px;
                     height: 48px;
                     outline: none;
                     padding-left: 5px;
+                    background: powderblue;
                 }
                 .button{
                     background: greenyellow;
                     color: #FFF;
-                    font-size: @font-size;
-                    line-height: 50px;
+                    font-size: 25px;
+                    font-weight: bold;
+                    line-height: 58px;
                     width: 100px;
-                    height: 50px;
+                    height: 58px;
                 }
             }
         }
