@@ -1,10 +1,10 @@
 <template>
     <div class="message-container">
-        <!-- <div class="portrait" :style="{float: messageDataSource.direction}">
+        <div class="portrait" :style="{float: messageDataSource.direction}">
             <img src="../../assets/portrait.jpg" />
-        </div> -->
+        </div>
         <div class="message-content" :style="directionStyle.leftRight">
-            <!-- <div class="arrow" :style="directionStyle.arrowStyle" ></div> -->
+            <div class="arrow" :style="directionStyle.arrowStyle" ></div>
             <div class="top" >
                 <div class="student-name" :style="{float: messageDataSource.direction}">
                     {{messageDataSource.name}}
@@ -83,13 +83,13 @@ export default {
             border: 1px solid #eee;
             box-sizing: border-box;
             position: relative;
-            // .arrow{
-            //     width: 0;
-            //     height: 0;
-            //     border-top: 16px solid blanchedalmond;
-            //     position: absolute;
-            //     top: 8px;
-            // }
+            .arrow{
+                width: 0;
+                height: 0;
+                border-top: 20px solid blanchedalmond;
+                position: absolute;
+                top: 8px;
+            }
             .top{
                 font-size: @font-size;
                 line-height: 10px;

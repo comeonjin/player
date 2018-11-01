@@ -16,15 +16,18 @@
             </div>
         </div>
         <!-- <Chat /> -->
-        <div class="chatBox">
-            <div id="chatItemsBox" class="messageScreen" ref="messageScreen">
+        <div class="chatBox" v-if="chatItemsBoxHeight !== 0">
+            <div class="chatTitle">
+                聊天
+            </div>
+            <div id="chatItemsBox" :style="{height: chatItemsBoxHeight}" class="messageScreen" ref="messageScreen">
                 <Message v-for="(item, index) in messageList" :key="index" :messageDataSource="item" />
             </div>
 
             <div class="inputMessage">
-                <input id="send_msg_text" class="input" type="text" v-model="currentMessage">
-                <div id="text_msg_send_btn" class="button" @click="sendMessage">
-                    发送 
+                <input id="send_msg_text" class="input" type="text" :disabled="noSpeaking" v-model="currentMessage">
+                <div id="text_msg_send_btn" class="messageSendButton" :class="{noSpeak: noSpeaking}" @click="sendMessage">
+                    {{buttonContent}} 
                 </div>
             </div>
         </div>
@@ -35,57 +38,45 @@
 <script>
     import LMC from '../common/lmc.js' 
     import Chat from './Chat.vue'
-    import Message from './Message.vue'
+    import Message from './Message2.vue'
 
     export default {
         data(){
             return {
                 // playerUrl: 'http://10.31.4.133:8080/#/?appId=aijianzi_t&roomId=11198&userId=s19258&role=student&subGroupId=386&random=4acef9569ab245fd9838a5fe912fc7d0&expire=1540882258&appSign=A83BBD5FE656A4F7F2FA747DD304734E&subGroupName=%E9%BB%98%E8%AE%A4%E7%8F%AD%E7%BA%A7&nickname=%E5%A4%A7%E5%8F%94%E5%A4%A7%E5%A9%B6%E5%A5%A5%E6%9C%AF%E5%A4%A7%E5%B8%88%E5%A4%A7&courseId=573&knowledgeId=3235&replay=true'
-                messageList: [{
-                    direction: 'left',
-                    portrait: '../../../assets/portrait.jpg',
-                    name: 'GACZE',
-                    date: '10-20 21:07',
-                    message: '老师们辛苦了老师们辛苦了',
-                }, {
-                    direction: 'right',
-                    portrait: '../../../assets/portrait.jpg',
-                    name: 'GACZE',
-                    date: '10-20 21:07',
-                    message: '老师们辛苦了老师们辛苦了老师们辛苦了',
-                }, {
-                    direction: 'right',
-                    portrait: '../../../assets/portrait.jpg',
-                    name: 'GACZE',
-                    date: '10-20 21:07',
-                    message: '老师们辛苦了老师们辛苦了老师们辛苦了老师们辛苦了',
-                }, {
-                    direction: 'left',
-                    portrait: '../../../assets/portrait.jpg',
-                    name: 'GACZE',
-                    date: '10-20 21:07',
-                    message: '老师们辛苦了老师们辛苦了老师们辛苦了老师们辛苦了老师们辛苦了',
-                }],
+                messageList: [],
+                //v-model 了input输入框
                 currentMessage: '',
+                //保存从url中获取的参数对象
                 initParams: {},
-                getVideoTimer: null
+                //一个interVal timer对象用于检查video dom对象是否已经渲染
+                getVideoTimer: null,
+                //动态获取聊天区域的高度
+                chatItemsBoxHeight: 0,
+                noSpeaking: true,
+                //上课状态码 1未开始 2上课 3休息 4下课
+                playerStatus: 0
             }
         },
-        computed:{},
+        computed:{
+            buttonContent(){
+                return this.noSpeaking ? '禁言中' : '发送'
+            }
+        },
         components:{
             Chat,
             Message
         },
         created(){
-            
+            //页面加载获取参数对象
             if(window.location.href.split('?')[1]){
                 this.initPlayer(this.getParams())
             }
             
         },
         mounted(){
-            //设置播放不自动全屏
-            this.setVideo()
+            //设置播放时不自动全屏播放
+            this.setVideo()  
         },
         methods: {
             getParams(){
@@ -137,10 +128,13 @@
                                 console.log(self)
                             },
                             onTextMsgSend: function(msg) { //当发送普通消息时回调
-                                alert(JSON.stringify(msg))
                                 LMC.debugLog('onTextMsgSend');
                                 LMC.debugLog(msg);
                             },
+                            onPollingTrigger: function(status){
+                                // alert(JSON.stringify(status))
+                                context.noSpeaking = (status.speaking === 'off')
+                            }
                         },
                         im: { //即时通信模块
                             'onlyGroupMsg': true, //是否只显示本组消息
@@ -152,32 +146,29 @@
                             'chatItemRender': function(msg) { //聊天内容渲染器,
                                 // showMsgItem(msg);
                                 // context.currentMessage = msg.content
-                                context.renderMessage(msg.content, context.formateTime(msg.time*1000), msg.fromAccount)
+                                context.renderMessage(msg.content, context.formateTime(msg.time), msg.fromAccount, msg.fromAccountNick)
                                 // debugger
-                                console.log("**********************************",msg)
+                                // console.log("**********************************",msg)
                                 // context.sendMessage(context.formateTime(msg.time))
                                 
                             },
-                        }
+                        },
+                        
                     }
                 })
             },
             sendMessage(date) {
-                
                 console.log(LMC.getStatus().speaking)
-                debugger
-
-                if (LMC.getStatus().speaking !== 'off') {
+                if (this.speaking !== 'off') {
                     if(this.currentMessage !== ''){
                         LMC.sendTextMsg(this.currentMessage);
                     }
                 }
             },
-            renderMessage(message,date,userId){
+            renderMessage(message,date,userId,nickname){
                 const messageData = {
                     direction: this.initParams.userId === userId ? 'right' : 'left',
-                    portrait: '../../../assets/portrait.jpg',
-                    name: 'GACZE',
+                    name: nickname,
                     date: date,
                     message: message,
                 };
@@ -215,54 +206,82 @@
                     video.setAttribute('webkit-playsinline', true)
                     video.setAttribute('playsinline', true)
                     video.setAttribute('x5-playsinline', true)
+
+                    //获取到video标签后,计算聊天区域高度
+                    this.getCurrentVideoHeight()
                     clearInterval(this.getVideoTimer)
                     this.getVideoTimer = null
+
                 },1000)
-            }
+            },
+            getCurrentVideoHeight(){
+                console.log('video window height is: ++++++++++++++++++++++++++++',document.getElementById('window').offsetHeight)
+                console.log('client window height is: ++++++++++++++++++++++++++++',document.body.clientHeight)            
+                this.chatItemsBoxHeight = (document.body.clientHeight-document.getElementById('window').offsetHeight-100) + 'px'
+            },
+            
         }
     }
 </script>
 
 <style lang="less" scoped>
-    // #window{
-    //     position: absolute;
-    //     width: 100%;
-    //     height: 100%;
-    //     background: #fff;
-    // }
-    @font-size: 20px;
-
+    
     .playerContainer{
         .chatBox{
+            box-sizing: border-box;
+            padding: 0 20px;
+            background: #eee;
+
+            .chatTitle{
+                line-height: 55px;
+                font-size: 30px;
+                font-weight: bold;
+                color: #555;
+                border-bottom: 1px solid #ccc;
+                text-align: left;
+                background: #eee;
+            }
             .messageScreen{
-                background: orange;
-                height: 300px;
                 overflow-y: auto;
             }
             .inputMessage{
-                background: lightsalmon;
+                position: fixed;
+                width: 100%;
+                left: 0;
+                background: #FFF;
                 display: flex;
                 flex-direction: row;
-                justify-content: center;
+                justify-content: space-around;
                 align-items: center;
-                height: 60px;
+                height: 80px;
                 .input{
-                    border: 0px;
-                    border-radius: 0px;
-                    width: 300px;
-                    height: 48px;
-                    outline: none;
-                    padding-left: 5px;
-                    background: powderblue;
-                }
-                .button{
-                    background: greenyellow;
-                    color: #FFF;
                     font-size: 25px;
+                    border: 1px solid #aaa ;
+                    border-radius: 1px;
+                    width: 530px;
+                    height: 55px;
+                    outline: none;
+                    padding: 0 15px;
+                    -webkit-appearance: none; //去掉内阴影
+                    &:focus{
+                        border-color: #1ab394;
+                    }
+
+                }
+                .messageSendButton{
+                    background: #1ab394;
+                    color: #FFF;
+                    font-size: 30px;
                     font-weight: bold;
-                    line-height: 58px;
-                    width: 100px;
-                    height: 58px;
+                    line-height: 62px;
+                    width: 120px;
+                    height: 60px;
+                    border-radius: 5px;
+                    
+                }
+                .noSpeak{
+                    background: rgb(235, 235, 228);
+                    color: #aaa;
                 }
             }
         }
