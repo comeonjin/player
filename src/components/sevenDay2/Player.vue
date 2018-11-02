@@ -3,7 +3,7 @@
         <div id="window">
             <div id="view">
                 <div id="player-box-container" class="col-md-12 col-xs-12 player-box">
-                    <div id="mianPlayerBox" style="height: 100%;">
+                    <div id="mianPlayerBox" style="height: 211px;">
                     </div>
                     <div id="auxPlayerBox">
                     </div>
@@ -16,9 +16,9 @@
             </div>
         </div>
         <!-- <Chat /> -->
-        <div class="chatBox" v-if="chatItemsBoxHeight !== 0">
-            <div class="chatTitle">
-                聊天
+        <div class="chatBox" >
+            <div class="chatTitle" :class="{alertPlay: showAlert}">
+                {{chatTitle}}
             </div>
             <div id="chatItemsBox" :style="{height: chatItemsBoxHeight}" class="messageScreen" ref="messageScreen">
                 <Message v-for="(item, index) in messageList" :key="index" :messageDataSource="item" />
@@ -39,6 +39,7 @@
     import LMC from '../common/lmc.js' 
     import Chat from './Chat.vue'
     import Message from './Message2.vue'
+    import { Toast } from 'mint-ui'
 
     export default {
         data(){
@@ -55,28 +56,69 @@
                 chatItemsBoxHeight: 0,
                 noSpeaking: true,
                 //上课状态码 1未开始 2上课 3休息 4下课
-                playerStatus: 0
+                playerStatus: '',
+                showAlert: false,
+                isAndroid: false
             }
         },
         computed:{
             buttonContent(){
                 return this.noSpeaking ? '禁言中' : '发送'
+            },
+            chatTitle(){
+                return this.showAlert ? '因为您的设备不支持自动播放,请您点击播放按钮上课' : '聊天'
             }
+            // videoBackground(){
+            //     switch(this.playerStatus){
+            //         case 1:
+            //             return 'url(../../assets/player_bg_wait.png) no-repeat center'
+            //         case 2:
+            //             return 'url(../../assets/player_bg_start.png) no-repeat center'
+            //         case 3:
+            //             return 'url(../../assets/player_bg_suspend.png) no-repeat center'
+            //         case 4:
+            //             return 'url(../../assets/player_bg_end.png) no-repeat center'
+            //     }
+            // }
         },
         components:{
             Chat,
-            Message
+            Message,
         },
         created(){
             //页面加载获取参数对象
             if(window.location.href.split('?')[1]){
                 this.initPlayer(this.getParams())
             }
-            
+            const context = this
+            var u = navigator.userAgent;
+            context.isAndroid = u.indexOf('Android') > -1 || u.indexOf('Adr') > -1; //android终端
+            document.addEventListener('WeixinJSBridgeReady', function(){ 
+                if(context.isAndroid){
+                    context.showAlert = true
+                    Toast({
+                        message: '因为您的设备不支持自动播放,请您点击播放按钮上课',
+                        position: 'bottom',
+                        duration: 5000
+                    });
+                }else{
+                    document.getElementsByTagName('video')[0].play()
+                }
+            }, false);
+            document.addEventListener('click', function(){
+                if(context.showAlert){
+                    alert('touchstart')
+                    context.showAlert = false
+                }
+            })
+
         },
         mounted(){
             //设置播放时不自动全屏播放
             this.setVideo()  
+            //获取到video标签后,计算聊天区域高度
+            this.getCurrentVideoHeight()
+            
         },
         methods: {
             getParams(){
@@ -134,7 +176,30 @@
                             onPollingTrigger: function(status){
                                 // alert(JSON.stringify(status))
                                 context.noSpeaking = (status.speaking === 'off')
-                            }
+                                let liveStatus = status.liveStatus
+                                //通过liveStatus 设置播放状态值从而设置对应的background
+                                // if(liveStatus){
+                                //     context.getPlayerStatus(liveStatus)
+                                // }
+
+                            },
+                            onCommandArrive: function(msg) { // 当命令消息到达时回调
+                                // alert(msg.data.resposeData.data.value)
+                                let currentStatus = msg.data.resposeData.data.value
+                                if(currentStatus === 'start'){
+                                    if(context.isAndroid){
+                                        // alert('因为您的设备不支持自动播放,请您点击播放按钮上课')
+                                        Toast({
+                                            message: '因为您的设备不支持自动播放,请您点击播放按钮上课',
+                                            position: 'bottom',
+                                            duration: 5000
+                                        });
+                                        context.showAlert = true
+                                    }else{
+                                        window.location.reload()
+                                    }
+                                }
+                            },
                         },
                         im: { //即时通信模块
                             'onlyGroupMsg': true, //是否只显示本组消息
@@ -146,7 +211,7 @@
                             'chatItemRender': function(msg) { //聊天内容渲染器,
                                 // showMsgItem(msg);
                                 // context.currentMessage = msg.content
-                                context.renderMessage(msg.content, context.formateTime(msg.time), msg.fromAccount, msg.fromAccountNick)
+                                context.renderMessage(msg.content.replace('#fd0000/*/', ''), context.formateTime(msg.time), msg.fromAccount, msg.fromAccountNick)
                                 // debugger
                                 // console.log("**********************************",msg)
                                 // context.sendMessage(context.formateTime(msg.time))
@@ -196,7 +261,7 @@
                 const timeString = `${month}-${day} ${hours}:${minutes}`
                 return timeString
             },
-            //设置移动端播放器播放时不自动全屏
+            //设置移动端播放器播放时不自动全屏, 并动态设置背景图片
             setVideo(){
                 this.getVideoTimer = setInterval(() => {
                     if(!document.getElementsByTagName('video')[0]){
@@ -206,9 +271,6 @@
                     video.setAttribute('webkit-playsinline', true)
                     video.setAttribute('playsinline', true)
                     video.setAttribute('x5-playsinline', true)
-
-                    //获取到video标签后,计算聊天区域高度
-                    this.getCurrentVideoHeight()
                     clearInterval(this.getVideoTimer)
                     this.getVideoTimer = null
 
@@ -219,6 +281,22 @@
                 console.log('client window height is: ++++++++++++++++++++++++++++',document.body.clientHeight)            
                 this.chatItemsBoxHeight = (document.body.clientHeight-document.getElementById('window').offsetHeight-100) + 'px'
             },
+            // getPlayerStatus(liveStatus){
+            //     switch(liveStatus){
+            //         case 'start':
+            //             this.playerStatus = 2;
+            //             break
+            //         case 'suspend':
+            //             this.playerStatus = 3;
+            //             break;
+            //         case 'end':
+            //             this.playerStatus = 4;
+            //             break;
+            //         default:
+            //             this.playerStatus = 1;
+            //             break;
+            //     }
+            // }
             
         }
     }
@@ -233,13 +311,17 @@
             background: #eee;
 
             .chatTitle{
-                line-height: 55px;
+                height: 60px;
+                line-height: 65px;
                 font-size: 30px;
                 font-weight: bold;
                 color: #555;
                 border-bottom: 1px solid #ccc;
                 text-align: left;
                 background: #eee;
+            }
+            .alertPlay{
+                color: red;
             }
             .messageScreen{
                 overflow-y: auto;
@@ -282,6 +364,7 @@
                 .noSpeak{
                     background: rgb(235, 235, 228);
                     color: #aaa;
+                    
                 }
             }
         }

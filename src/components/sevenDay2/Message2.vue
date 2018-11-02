@@ -53,17 +53,16 @@
                 font-size: 25px;
                 color: #aaa;
                 height: 40px;
-                line-height: 48px;
+                line-height: 45px;
                 padding: 0 10px;
             }
         }
         .messageContent{
             width: 98%;
-            min-height: 80px;
             font-size: @font-size;
             background: #fff;
             border-radius: 5px;
-            padding: 10px 20px;
+            padding: 15px 20px;
             box-sizing: border-box;
             line-height: 50px;
         }
